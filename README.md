@@ -1,4 +1,4 @@
-Repo implementing compact convolutional transformers with scalable softmax.
+Repo implementing compact convolutional transformers with scalable softmax and super attention
 
 First install dependencies from requirements.txt file
 
