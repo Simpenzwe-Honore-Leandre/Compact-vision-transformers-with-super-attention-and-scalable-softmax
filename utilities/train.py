@@ -7,21 +7,19 @@ from torchmetrics.classification import Accuracy, Precision,F1Score
 from tqdm import tqdm
 
 def train(model,train_loader,val_loader,optimizer,num_classes,save_path,scheduler=None,device='cuda',num_epochs=100):
+  acc_metric = Accuracy(task='multiclass', num_classes=num_classes).to(device)
+  f1_metric = F1Score(task='multiclass', num_classes=num_classes).to(device)
+  top5_acc_metric = Accuracy(task='multiclass', num_classes=num_classes,top_k=5).to(device)
 
-  # Setup
-  acc_metric = Accuracy(task='multiclass', num_classes=num_classes).cuda()
-  f1_metric = F1Score(task='multiclass', num_classes=num_classes).cuda()
-  top5_acc_metric = Accuracy(task='multiclass', num_classes=num_classes,top_k=5).cuda()
+  val_acc_metric = Accuracy(task='multiclass', num_classes=num_classes).to(device)
+  val_f1_metric = F1Score(task='multiclass', num_classes=num_classes).to(device)
+  val_top5_acc_metric = Accuracy(task='multiclass', num_classes=num_classes,top_k=5).to(device)
 
-  val_acc_metric = Accuracy(task='multiclass', num_classes=num_classes).cuda()
-  val_f1_metric = F1Score(task='multiclass', num_classes=num_classes).cuda()
-  val_top5_acc_metric = Accuracy(task='multiclass', num_classes=num_classes,top_k=5).cuda()
+  criterion = nn.CrossEntropyLoss()
   metrics_path = os.path.join( save_path ,"metrics")
   checkpoints_path = os.path.join( save_path ,"checkpoints")
   os.makedirs( checkpoints_path , exist_ok=True)
   os.makedirs( metrics_path, exist_ok=True)
-
-  criterion = nn.CrossEntropyLoss()
 
   history = []
 
@@ -33,7 +31,7 @@ def train(model,train_loader,val_loader,optimizer,num_classes,save_path,schedule
       f1_metric.reset()
 
       for images, labels in tqdm(train_loader):
-          images, labels = images.cuda(), labels.cuda()
+          images, labels = images.to(device), labels.to(device)
 
           optimizer.zero_grad()
 
@@ -41,8 +39,8 @@ def train(model,train_loader,val_loader,optimizer,num_classes,save_path,schedule
           loss = criterion(outputs, labels)
 
           loss.backward()
-          torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
           optimizer.step()
+
           if scheduler:
             scheduler.step()
 
@@ -69,7 +67,7 @@ def train(model,train_loader,val_loader,optimizer,num_classes,save_path,schedule
 
       with torch.no_grad():
           for val_images, val_labels in val_loader:
-              val_images, val_labels = val_images.cuda(), val_labels.cuda()
+              val_images, val_labels = val_images.to(device), val_labels.to(device)
 
               val_outputs = model(val_images)
               v_loss = criterion(val_outputs, val_labels)
@@ -113,5 +111,7 @@ def train(model,train_loader,val_loader,optimizer,num_classes,save_path,schedule
       df.to_csv( os.path.join(metrics_path , "transformer_metrics.csv"), index=False,mode='w')
       df.to_csv( os.path.join(metrics_path , "backup_transformer_metrics.csv"), index=False,mode='w')
 
-  return
+  return history
+
+
 

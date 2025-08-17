@@ -2,14 +2,10 @@ import torch.nn as nn
 import torch
 import torch.nn.functional as F
 
-
-
-class SuperMultiHeadAttention(nn.Module):
+class MultiHeadAttention(nn.Module):
 
     def __init__(
         self,
-        seq_len,
-        scale_param,
         num_heads=24,
         embed_dim = 768,
         bias = False
@@ -18,10 +14,8 @@ class SuperMultiHeadAttention(nn.Module):
         self.num_heads = num_heads
         self.embed_dim = embed_dim
         self.head_dim  = self.embed_dim // self.num_heads
-        self.scale_param = scale_param.view(1, num_heads, 1, 1)
 
         self.attn_scaler = self.head_dim**-0.5
-        self.logn_scaler = torch.log(torch.tensor(self.embed_dim))
 
         self.norm1 = nn.RMSNorm(embed_dim)
         self.norm2 = nn.RMSNorm(embed_dim)
@@ -41,8 +35,17 @@ class SuperMultiHeadAttention(nn.Module):
             bias=bias,
         )
 
-        self.WA = nn.Parameter( torch.empty(seq_len,seq_len) )
-        nn.init.orthogonal_(self.WA)
+        self.k_proj = nn.Linear(
+            in_features = embed_dim,
+            out_features = embed_dim,
+            bias=bias,
+        )
+
+        self.v_proj = nn.Linear(
+            in_features=embed_dim,
+            out_features=embed_dim,
+            bias=bias,
+        )
 
 
     def forward(self, x)->torch.Tensor :
@@ -52,16 +55,10 @@ class SuperMultiHeadAttention(nn.Module):
 
         q = self.q_proj(x_norm).reshape(B, self.num_heads,N, self.head_dim)
 
-        #slicing
-        k = x_norm.reshape(B, self.num_heads,N, self.head_dim).permute(0, 1, 3, 2).contiguous()  # transposed by default
+        k = self.k_proj(x_norm).reshape(B, self.num_heads,N, self.head_dim).permute(0, 1, 3, 2).contiguous()  # transposed by default
 
-        v = x_norm.reshape(B,self.num_heads , N, self.head_dim)
+        v = self.v_proj(x_norm).reshape(B,self.num_heads , N, self.head_dim)
 
-        wa = self.WA[:N, :N]
-
-        v = wa @ v
-
-        # scalable softmax for attention applied to q vector
         scores = F.softmax( 1/self.attn_scaler *  q @ k,dim=-1 )
 
         attn = (scores @ v).reshape(B,N,C) + x

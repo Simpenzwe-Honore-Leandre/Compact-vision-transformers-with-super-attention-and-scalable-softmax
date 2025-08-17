@@ -1,13 +1,7 @@
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from super_mha import SuperMultiHeadAttention
-from tokenizer import ImageTokenizer
-
-class SSCCTransformer(nn.Module):
+class CCTransformer(nn.Module):
   """
-  SSCCTransformer: Scalable-Softmax Compact Convolutional Transformer.
-  Uses conv tokenization, scalable softmax, super attention blocks, and learnable pooling.
+  CCTransformer: Compact Convolutional Transformer.
+  Uses conv tokenization, super attention blocks, and learnable pooling.
   Args:
       input_shape: tuple (B,C,H,W)
       kernel_size, stride, padding: for tokenizer conv
@@ -44,17 +38,13 @@ class SSCCTransformer(nn.Module):
     )
     with torch.no_grad():
       dummy_input = torch.randn(1, *input_shape[1:])
-      _, self.seq_len, _ = self.tokenizer(dummy_input).shape
     self.head_dim    = embed_dim//num_heads
     self.embed_dim   = embed_dim
     self.num_heads   = num_heads
     self.num_layers  = num_layers
-    self.scale_param = nn.Parameter(torch.ones(1, num_heads, 1, 1))
 
-    self.super_attn_blocks = nn.Sequential( *[ SuperMultiHeadAttention(
-                                                    seq_len=self.seq_len,
+    self.super_attn_blocks = nn.Sequential( *[ MultiHeadAttention(
                                                     num_heads=self.num_heads,
-                                                    scale_param = self.scale_param,
                                                     embed_dim=self.embed_dim,
                                                     bias=False)
                                                    for _ in range( num_layers )]  )
@@ -74,24 +64,3 @@ class SSCCTransformer(nn.Module):
   def forward(self,x):
     return self.pooler(self.super_attn_blocks( self.tokenizer(x) ) )
 
-
-class SeqPooler(nn.Module):
-  """
-  Attention-based sequence pooler.
-  Computes a weighted average of sequence tokens using learned attention scores.
-
-  Input: (B, N, D)
-  Output: (B, D)
-  """
-
-  def __init__(self,
-               in_features,
-               out_features,
-               bias=False
-               ):
-    super().__init__()
-    self.attention_pool  = nn.Linear(in_features=in_features, out_features=1,bias=bias)
-    self.dropout = nn.Dropout(0.3)
-  def forward(self,x):
-    pooled_seq=  torch.matmul(F.softmax(self.attention_pool(x), dim=1).transpose(-1, -2), x).squeeze(-2)
-    return self.dropout(pooled_seq)

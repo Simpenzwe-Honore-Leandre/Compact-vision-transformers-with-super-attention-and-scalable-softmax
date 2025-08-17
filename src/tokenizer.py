@@ -16,11 +16,14 @@ class ImageTokenizer(nn.Module):
                                     kernel_size=kernel_size,
                                     padding=padding,
                                     bias=bias)
-        self.pool_layer = nn.MaxPool2d( kernel_size=pooling_kernel_size,
-                                      stride=pooling_stride,
-                                       padding=pooling_padding
-                                      )
-        self.flattener = nn.Flatten(2,3)
+        self.pool_layer = nn.Sequential(nn.MaxPool2d( kernel_size=pooling_kernel_size,
+                                        stride=pooling_stride,
+                                        padding=pooling_padding
+                                        ),
+                                        nn.GELU(),
+                                        nn.Dropout(0.3)
+                                        )
+        self.flattener = nn.Flatten(2)
 
         self.apply(self.init_weight)
 
