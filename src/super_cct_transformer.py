@@ -49,7 +49,6 @@ class SuperCCTransformer(nn.Module):
     self.embed_dim   = embed_dim
     self.num_heads   = num_heads
     self.num_layers  = num_layers
-    self.scale_param = nn.Parameter(torch.ones(1, num_heads, 1, 1))
 
     self.super_attn_blocks = nn.Sequential( *[ SuperMultiHeadAttention(
                                                     seq_len=self.seq_len,
