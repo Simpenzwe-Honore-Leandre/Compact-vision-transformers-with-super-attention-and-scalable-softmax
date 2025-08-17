@@ -9,7 +9,6 @@ class SuperMultiHeadAttention(nn.Module):
     def __init__(
         self,
         seq_len,
-        scale_param,
         num_heads=24,
         embed_dim = 768,
         bias = False
@@ -18,10 +17,7 @@ class SuperMultiHeadAttention(nn.Module):
         self.num_heads = num_heads
         self.embed_dim = embed_dim
         self.head_dim  = self.embed_dim // self.num_heads
-        self.scale_param = scale_param.view(1, num_heads, 1, 1)
-
         self.attn_scaler = self.head_dim**-0.5
-        self.logn_scaler = torch.log(torch.tensor(self.embed_dim))
 
         self.norm1 = nn.RMSNorm(embed_dim)
         self.norm2 = nn.RMSNorm(embed_dim)
