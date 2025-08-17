@@ -1,8 +1,6 @@
-Repo implementing compact convolutional transformers with scalable softmax and super attention
+Repo implementing compact convolutional transformers with scalable softmax and super attention.
 
-First install dependencies from requirements.txt file
-
-
+First install dependencies from requirements.txt file.
 
 To use the tokenizer.
 
@@ -26,6 +24,6 @@ To use the whole super attention cct transformer block
 
 ```python
 from src.super_cct_transformer import SuperCCTransformer
-//shape = image.shape
-model = SSCCTransformer(shape,kernel_size=3,stride=3,padding=0,embed_dim=768,num_layers=6)
+#shape = image.shape
+model = SuperCCTransformer(shape,kernel_size=3,stride=3,padding=0,embed_dim=768,num_layers=6)
 ```
