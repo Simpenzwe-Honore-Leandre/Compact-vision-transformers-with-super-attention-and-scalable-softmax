@@ -1,3 +1,9 @@
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from mha import MultiHeadAttention
+from tokenizer import ImageTokenizer
+
 class CCTransformer(nn.Module):
   """
   CCTransformer: Compact Convolutional Transformer.
@@ -64,3 +70,23 @@ class CCTransformer(nn.Module):
   def forward(self,x):
     return self.pooler(self.super_attn_blocks( self.tokenizer(x) ) )
 
+class SeqPooler(nn.Module):
+  """
+  Attention-based sequence pooler.
+  Computes a weighted average of sequence tokens using learned attention scores.
+
+  Input: (B, N, D)
+  Output: (B, D)
+  """
+
+  def __init__(self,
+               in_features,
+               out_features,
+               bias=False
+               ):
+    super().__init__()
+    self.attention_pool  = nn.Linear(in_features=in_features, out_features=1,bias=bias)
+    self.dropout = nn.Dropout(0.3)
+  def forward(self,x):
+    pooled_seq=  torch.matmul(F.softmax(self.attention_pool(x), dim=1).transpose(-1, -2), x).squeeze(-2)
+    return self.dropout(pooled_seq)

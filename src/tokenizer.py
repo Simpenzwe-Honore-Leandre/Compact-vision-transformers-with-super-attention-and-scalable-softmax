@@ -1,4 +1,5 @@
 import torch.nn as nn
+
 class ImageTokenizer(nn.Module):
     """
     simplified one layer tokenizer based on CCT
