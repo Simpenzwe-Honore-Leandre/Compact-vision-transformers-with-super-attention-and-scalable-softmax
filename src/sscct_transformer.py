@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from super_mha import SuperMultiHeadAttention
+from scalable_super_mha.py import ScalableSuperMultiHeadAttention
 from tokenizer import ImageTokenizer
 
 class SSCCTransformer(nn.Module):
@@ -51,7 +51,7 @@ class SSCCTransformer(nn.Module):
     self.num_layers  = num_layers
     self.scale_param = nn.Parameter(torch.ones(1, num_heads, 1, 1))
 
-    self.super_attn_blocks = nn.Sequential( *[ SuperMultiHeadAttention(
+    self.scalable_super_attn_blocks = nn.Sequential( *[ ScalableSuperMultiHeadAttention(
                                                     seq_len=self.seq_len,
                                                     num_heads=self.num_heads,
                                                     scale_param = self.scale_param,
@@ -72,7 +72,7 @@ class SSCCTransformer(nn.Module):
 
 
   def forward(self,x):
-    return self.pooler(self.super_attn_blocks( self.tokenizer(x) ) )
+    return self.pooler(self.scalable_super_attn_blocks( self.tokenizer(x) ) )
 
 
 class SeqPooler(nn.Module):
