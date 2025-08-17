@@ -61,7 +61,6 @@ class SuperMultiHeadAttention(nn.Module):
 
         v = wa @ v
 
-        # scalable softmax for attention applied to q vector
         scores = F.softmax( 1/self.attn_scaler *  q @ k,dim=-1 )
 
         attn = (scores @ v).reshape(B,N,C) + x
