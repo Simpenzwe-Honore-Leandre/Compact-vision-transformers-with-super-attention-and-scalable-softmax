@@ -42,8 +42,6 @@ class CCTransformer(nn.Module):
         n_output_channels=embed_dim,
         bias=bias
     )
-    with torch.no_grad():
-      dummy_input = torch.randn(1, *input_shape[1:])
     self.head_dim    = embed_dim//num_heads
     self.embed_dim   = embed_dim
     self.num_heads   = num_heads
