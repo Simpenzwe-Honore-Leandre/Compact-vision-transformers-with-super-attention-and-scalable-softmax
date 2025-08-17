@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from scalable_super_mha.py import ScalableSuperMultiHeadAttention
 from tokenizer import ImageTokenizer
 
-class SSCCTransformer(nn.Module):
+class ScalableSuperCCTransformer(nn.Module):
   """
   SSCCTransformer: Scalable-Softmax Compact Convolutional Transformer.
   Uses conv tokenization, scalable softmax, super attention blocks, and learnable pooling.
