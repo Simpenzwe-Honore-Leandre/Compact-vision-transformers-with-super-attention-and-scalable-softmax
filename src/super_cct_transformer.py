@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from super_mha import SuperMultiHeadAttention
 from tokenizer import ImageTokenizer
 
-class SCCTransformer(nn.Module):
+class SuperCCTransformer(nn.Module):
   """
   SCCTransformer: Super attention Compact Convolutional Transformer.
   Uses conv tokenization,super attention blocks, and learnable pooling.
@@ -54,7 +54,6 @@ class SCCTransformer(nn.Module):
     self.super_attn_blocks = nn.Sequential( *[ SuperMultiHeadAttention(
                                                     seq_len=self.seq_len,
                                                     num_heads=self.num_heads,
-                                                    scale_param = self.scale_param,
                                                     embed_dim=self.embed_dim,
                                                     bias=False)
                                                    for _ in range( num_layers )]  )
